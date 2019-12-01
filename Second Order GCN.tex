@@ -4,10 +4,46 @@
 \title{Draft: Second order GCN}
 \date{}
 \author{Elnur Gasanov}
+\parindent=0.0mm
 \begin{document}
 \maketitle
 \section{Introduction}
 
+The current work is based mostly on~\cite{CNN_LSF} and~\cite{GCN}.
 
+\section{Second order graph convolutional network}
+\subsection{Spectral graph convolutions}
 
+General form of filtering:
+\[
+g_\theta \star x = Ug_\theta U^\top x 
+\]
+
+Chebyshev parametrization of the filter:
+\[
+g_\theta(L) = \sum\limits_{k=0}^{K-1} \theta_k T_k(\tilde{\Lambda}),
+\]
+where $\tilde{\Lambda} = \frac{2}{\lambda_{\max}} \Lambda - I$ and  $T_k$ is the Chebyshev polynomial of order $k$. 
+
+$T_k(x) = 2 x T_{k-1}(x) - T_{k-2}(x), T_0(x) = 1, \ T_1(x) = x$. 
+\subsection{Layer-wise quadratic model}
+Second order model according to the formula above have got the following form:
+\[
+g_\theta \star x = (\theta_0' I + \theta_1' \tilde{L} + \theta_2' (2 \tilde{L}^2 - I))x, 
+\]
+where $\tilde{L} = \frac{2}{\lambda_{\max}} L - I$ and $L = I - D^{-\frac12} A D^{-\frac12}$ is the Laplacian matrix of the graph. We will relax first two terms as it has been done in~\cite{GCN} (so that $\theta_0' I + \theta_1' \tilde{L} = \theta_1 \tilde{D}^{-\frac12} \tilde{A} \tilde{D}^{-\frac12} $). Moreover, instead of summing the linear approximation and quadratic term we will concatenate them. For the sake of calculation simplification, we will assume $\lambda_{\max} = 2$, so quadratic term will get the form: $ 2 \tilde{L}^2 - I = 2 D^{-\frac12} A D^{-1} A D^{-\frac12} - I$. Similar to~\cite{GCN}, we will perform the following kernel trick:
+$$
+\theta_2 (2 D^{-\frac12} A D^{-1} A D^{-\frac12} - I) \approx \theta_2' \tilde{D}_2^{-\frac12} A^2 \tilde{D}_2^{-\frac12} \| \theta_3'I,
+$$
+where $\|$ denotes concatenation, $\tilde{D}_{2, ii} = \sum_j [A^2]_{ij}$. A layer's otput is:
+\begin{align*}
+Z = \text{ReLU} (W [\tilde{D}^{-\frac12} \tilde{A} \tilde{D}^{-\frac12} \| \tilde{D}_2^{-\frac12} A^2 \tilde{D}_2^{-\frac12}  \| I ] X)
+\end{align*}
+Let us denote $\hat{A} = \tilde{D}^{-\frac12} \tilde{A} \tilde{D}^{-\frac12} \| \tilde{D}_2^{-\frac12} A^2 \tilde{D}_2^{-\frac12}  \| I$, the final classification model is:
+$$
+Z = \text{SoftMax}(W^{(1)} \hat{A} \ \text{ReLU} (W^{(0)} \hat{A} X)). 
+$$
+
+\bibliography{references}
+\bibliographystyle{plain}
 \end{document}
