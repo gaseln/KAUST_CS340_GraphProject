@@ -1,7 +1,7 @@
 \documentclass{article}
 \usepackage{amsthm, amsmath, amssymb}
 \usepackage{graphicx}
-\title{Second order GCN}
+\title{Second order graph convolutional networks}
 \date{}
 \author{Elnur Gasanov}
 \parindent=0.0mm
@@ -10,7 +10,7 @@
 
 \section{Introduction}
 
-Many important business-oriented tasks (such as implicit social relation prediction, log data and paper classification) highly depend on graph-structured data which lie in a non-euclidean domain. For the given graph with the description of nodes we aim to classify each node. Solution of this problem related to, for example, citation graphs may enable automatic determination of conference section to which the given paper relates the most.
+Many important business-oriented tasks (such as implicit social relation prediction, log data and paper classification) highly depend on graph-structured data which is a non-euclidean domain. For the given graph with the description of nodes we aim to classify each node. Solution of this problem related to, for example, citation graphs may enable automatic determination of conference section to which the given paper relates the most.
 
 \section{Related work}
 
@@ -57,7 +57,7 @@ $$
 
 \subsection{Datasets}
 
-We used two group of datasets: citation graph networks CiteSeer and Cora(\cite{Sen}) and web graph network Texas. We summarize information about the graphs in the table below.
+We use two group of datasets: citation graph networks CiteSeer and Cora(\cite{Sen}) and web graph networks Texas and Wisconsin. We summarize information about the graphs in the table below.
 \begin{table}[h]
 \centering
 \caption{Dataset statistics}
@@ -74,7 +74,7 @@ Wisconsin & Web & 265 & 530 & 5 & 1703 \\
 
 \subsection{Experimental setup}
 
-We train two-layer graph convolutional network with a dropout layer between them. Weights of the model has been trained with Adam optimizer with stepsize 0.01. Each model has been trained for 200 epochs. For citation networks, training has been performed on 140 nodes, testing on 1000 nodes. For web networks, training has been performed on ten percent of data, testing on 70 percent (20 percent has been picked for validation).
+We train two-layer graph convolutional network with a dropout layer between the layers. Weights of the model has been trained with Adam optimizer with stepsize 0.01. Each model has been trained for 200 epochs. For citation networks, training has been performed on 140 nodes, testing on 1000 nodes. For web networks, training has been performed on ten percent of data, testing on 70 percent (20 percent has been picked for validation).
 
 \subsection{Results}
 
@@ -96,7 +96,7 @@ As can be seen from it, for described experimental setup, SO GCN is always bette
 
 \section{Conclusion}
 
-Second order GCN is a good approach for solving classification problems as experiments show. Further extension of the work may lie in increasing the number of orders and applying more advanced regularization techniques.
+Second order GCN is a good approach for solving classification problems as experiments show. Further extension of the work may lie in increasing the number of orders, comparison of time needed to train the model with performance and applying more advanced regularization techniques.
 
 \bibliography{references}
 \bibliographystyle{plain}
