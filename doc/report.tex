@@ -1,0 +1,103 @@
+\documentclass{article}
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{graphicx}
+\title{Second order graph convolutional networks}
+\date{}
+\author{Elnur Gasanov}
+\parindent=0.0mm
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+Many important business-oriented tasks (such as implicit social relation prediction, log data and paper classification) highly depend on graph-structured data which is a non-euclidean domain. For the given graph with the description of nodes we aim to classify each node. Solution of this problem related to, for example, citation graphs may enable automatic determination of conference section to which the given paper relates the most.
+
+\section{Related work}
+
+The idea to use spectral graph information in order to construct convolutional layers has been first proposed in~\cite{first_paper}. Later, in~\cite{CNN_LSF} authors proposed practical version of CNNs on graphs with fast, trainable filters. Further simplification to linearly approximated filters has lead to Graph Convolutional Network~\cite{GCN}, which became a state-of-art technique in 2015. 
+\section{Second order graph convolutional network (SO~-~GCN)}
+\subsection{Spectral graph convolutions}
+
+General form of filtering is the following~\cite{first_paper}:
+\[
+g_\theta \star x = Ug_\theta U^\top x 
+\]
+
+Chebyshev parametrization of the filter has been proposed in~\cite{CNN_LSF}:
+\begin{align}
+g_\theta(L) = \sum\limits_{k=0}^{K-1} \theta_k T_k(\tilde{\Lambda}), \label{eq}
+\end{align}
+where $\tilde{\Lambda} = \frac{2}{\lambda_{\max}} \Lambda - I$ and  $T_k$ is the Chebyshev polynomial of order $k$. 
+
+$T_k(x) = 2 x T_{k-1}(x) - T_{k-2}(x), T_0(x) = 1, \ T_1(x) = x$. 
+\subsection{Layer-wise quadratic model}
+Second order model according to the formula~\ref{eq} has got the following form:
+\[
+g_\theta \star x = (\theta_0' I + \theta_1' \tilde{L} + \theta_2' (2 \tilde{L}^2 - I))x, 
+\]
+where $\tilde{L} = \frac{2}{\lambda_{\max}} L - I$ and $L = I - D^{-\frac12} A D^{-\frac12}$ is the Laplacian matrix of the graph. We will relax first two terms as it has been done in~\cite{GCN} (so that $\theta_0' I + \theta_1' \tilde{L} = \theta_1 \tilde{D}^{-\frac12} \tilde{A} \tilde{D}^{-\frac12} $). For the sake of calculation simplification, we will assume $\lambda_{\max} = 2$, so quadratic term will get the form: $ 2 \tilde{L}^2 - I = 2 D^{-\frac12} A D^{-1} A D^{-\frac12} - I$. In order to perform a kernel trick, as it has been done in~\cite{GCN}, we will get rid of the identity matrix, so finally the quadratic term will have the following form:
+$$
+\theta_2 (2 D^{-\frac12} A D^{-1} A D^{-\frac12} - I) \approx \theta_2' \tilde{D}_2^{-\frac12} A^2 \tilde{D}_2^{-\frac12},
+$$
+where $\tilde{D}_{2, ii} = \sum_j [A^2]_{ij}$. One layer's otput is:
+
+\begin{align*}
+Z = \text{ReLU} (\tilde{D}^{-\frac12} \tilde{A} \tilde{D}^{-\frac12} X W^{(1)} + \tilde{D}_2^{-\frac12} A^2 \tilde{D}_2^{-\frac12} X W^{(2)} )
+\end{align*}
+
+Let us denote $\hat{A}_1 = \tilde{D}^{-\frac12} \tilde{A} \tilde{D}^{-\frac12}, \ \hat{A}_2 = \tilde{D}_2^{-\frac12} A^2 \tilde{D}_2^{-\frac12}$, the final classification model $Z$ is:
+$$
+Z' = \text{ReLU} (\hat{A}_1 X W^{(0, 1)} + \hat{A}_2 X W^{(0, 1)})
+$$
+$$
+Z = \text{SoftMax}(\hat{A}_1 Z' W^{(1, 1)} + \hat{A}_2 Z' W^{(0, 1)})
+$$
+
+\section{Computational experiments}
+
+\subsection{Datasets}
+
+We use two group of datasets: citation graph networks CiteSeer and Cora(\cite{Sen}) and web graph networks Texas and Wisconsin. We summarize information about the graphs in the table below.
+\begin{table}[h]
+\centering
+\caption{Dataset statistics}
+~\\
+\begin{tabular}{c c c c c c}
+{\bf Datasets} & {\bf Type} & {\bf Nodes} & {\bf Edges} & {\bf Classes} & {\bf Features}\\
+\hline
+Citeseer & Citation network & 3327 & 4732 & 6 & 3703\\
+Cora & Citation network & 2708 & 5429 & 7 & 1433 \\
+Texas & Web & 187 & 328 & 5 & 1703\\
+Wisconsin & Web & 265 & 530 & 5 & 1703 \\
+\end{tabular}
+\end{table}
+
+\subsection{Experimental setup}
+
+We train two-layer graph convolutional network with a dropout layer between the layers. Weights of the model has been trained with Adam optimizer with stepsize 0.01. Each model has been trained for 200 epochs. For citation networks, training has been performed on 140 nodes, testing on 1000 nodes. For web networks, training has been performed on ten percent of data, testing on 70 percent (20 percent has been picked for validation).
+
+\subsection{Results}
+
+Classification accuracy of each model is summarized in the table below. 
+
+\begin{table}[h]
+\centering
+\caption{Summary of results in terms of classification accuracy} 
+~\\
+\begin{tabular}{c c c c c}
+{\bf Method} & {\bf CiteSeer} & {\bf Cora} & {\bf Texas} & {\bf Wisconsin}\\
+\hline
+GCN & 61.4 & 82.6 & 51.9 & 47.3\\
+SO GCN & 64.1 & 83.6 & 56.5 & 48.9\\
+\end{tabular}
+\end{table}
+
+As can be seen from it, for described experimental setup, SO GCN is always better than GCN. 
+
+\section{Conclusion}
+
+Second order GCN is a good approach for solving classification problems as experiments show. Further extension of the work may lie in increasing the number of orders, comparison of time needed to train the model with performance and applying more advanced regularization techniques.
+
+\bibliography{references}
+\bibliographystyle{plain}
+\end{document}
